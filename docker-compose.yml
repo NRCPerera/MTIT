@@ -1,6 +1,15 @@
 version: '3.8'
 
 services:
+  mongodb:
+    image: mongo:7.0
+    container_name: smart-agri-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    restart: unless-stopped
+
   farmer-service:
     build: ./farmer-service
     ports:
@@ -9,6 +18,9 @@ services:
       - PORT=5001
       - NODE_ENV=development
       - SERVICE_NAME=farmer-service
+      - MONGODB_URI=mongodb://mongodb:27017/smart-agri-farmers
+    depends_on:
+      - mongodb
 
   buyer-service:
     build: ./buyer-service
@@ -18,6 +30,9 @@ services:
       - PORT=5002
       - NODE_ENV=development
       - SERVICE_NAME=buyer-service
+      - MONGODB_URI=mongodb://mongodb:27017/smart-agri-buyers
+    depends_on:
+      - mongodb
 
   marketplace-service:
     build: ./marketplace-service
@@ -27,6 +42,9 @@ services:
       - PORT=5003
       - NODE_ENV=development
       - SERVICE_NAME=marketplace-service
+      - MONGODB_URI=mongodb://mongodb:27017/smart-agri-marketplace
+    depends_on:
+      - mongodb
 
   logistics-service:
     build: ./logistics-service
@@ -36,6 +54,9 @@ services:
       - PORT=5004
       - NODE_ENV=development
       - SERVICE_NAME=logistics-service
+      - MONGODB_URI=mongodb://mongodb:27017/smart-agri-logistics
+    depends_on:
+      - mongodb
 
   prediction-service:
     build: ./prediction-service
@@ -45,6 +66,9 @@ services:
       - PORT=5005
       - NODE_ENV=development
       - SERVICE_NAME=prediction-service
+      - MONGODB_URI=mongodb://mongodb:27017/smart-agri-prediction
+    depends_on:
+      - mongodb
 
   api-gateway:
     build: ./api-gateway
@@ -64,3 +88,6 @@ services:
       - marketplace-service
       - logistics-service
       - prediction-service
+
+volumes:
+  mongo-data:
