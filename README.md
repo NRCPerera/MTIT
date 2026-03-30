@@ -118,6 +118,7 @@ smart-agri-system/
 ### Prerequisites
 - **Node.js** (v16 or higher)
 - **npm** (v8 or higher)
+- **MongoDB** (Running on localhost:27017 or provide MONGODB_URI in .env)
 
 ### Installation
 
@@ -318,7 +319,7 @@ GET http://localhost:8080/api/prediction/predict/cinnamon
 - **Documentation**: Swagger (OpenAPI 3.0)
 - **Architecture**: Microservices
 - **Pattern**: MVC (Model-View-Controller)
-- **Data Storage**: In-memory arrays
+- **Data Storage**: MongoDB with Mongoose ODM
 - **Configuration**: dotenv
 
 ## 📝 License

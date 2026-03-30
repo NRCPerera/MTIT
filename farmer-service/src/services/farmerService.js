@@ -1,16 +1,15 @@
-const FarmerModel = require('../models/farmerModel');
+const Farmer = require('../models/farmerModel');
 
 /**
- * Service layer for Farmer operations
- * Contains business logic separated from the controller
+ * Service layer for Farmer operations with MongoDB
  */
 class FarmerService {
   /**
-   * Get all farmers from the data store
-   * @returns {Object} - Success response with farmers array
+   * Get all farmers from MongoDB
+   * @returns {Promise<Object>}
    */
-  static getAllFarmers() {
-    const farmers = FarmerModel.getAllFarmers();
+  static async getAllFarmers() {
+    const farmers = await Farmer.find();
     return {
       success: true,
       count: farmers.length,
@@ -20,11 +19,11 @@ class FarmerService {
 
   /**
    * Get a single farmer by ID
-   * @param {string} id - Farmer ID
-   * @returns {Object} - Success/error response
+   * @param {string} id
+   * @returns {Promise<Object>}
    */
-  static getFarmerById(id) {
-    const farmer = FarmerModel.getFarmerById(id);
+  static async getFarmerById(id) {
+    const farmer = await Farmer.findById(id);
     if (!farmer) {
       return {
         success: false,
@@ -39,35 +38,33 @@ class FarmerService {
 
   /**
    * Register a new farmer
-   * @param {Object} data - Farmer registration data
-   * @returns {Object} - Success/error response
+   * @param {Object} data
+   * @returns {Promise<Object>}
    */
-  static createFarmer(data) {
-    // Validation
-    const errors = [];
-    if (!data.name || data.name.trim().length === 0) {
-      errors.push('Name is required');
-    }
-    if (!data.email || data.email.trim().length === 0) {
-      errors.push('Email is required');
-    }
-    if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-      errors.push('Invalid email format');
-    }
-
-    if (errors.length > 0) {
+  static async createFarmer(data) {
+    try {
+      const farmer = await Farmer.create(data);
       return {
-        success: false,
-        errors,
+        success: true,
+        message: 'Farmer registered successfully',
+        data: farmer,
       };
+    } catch (error) {
+      if (error.code === 11000) {
+        return {
+          success: false,
+          errors: ['Email already exists']
+        };
+      }
+      if (error.name === 'ValidationError') {
+        const messages = Object.values(error.errors).map(val => val.message);
+        return {
+          success: false,
+          errors: messages
+        };
+      }
+      throw error;
     }
-
-    const farmer = FarmerModel.createFarmer(data);
-    return {
-      success: true,
-      message: 'Farmer registered successfully',
-      data: farmer,
-    };
   }
 }
 

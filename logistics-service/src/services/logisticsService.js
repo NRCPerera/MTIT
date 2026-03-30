@@ -1,15 +1,15 @@
-const LogisticsModel = require('../models/logisticsModel');
+const Delivery = require('../models/logisticsModel');
 
 /**
- * Service layer for Logistics operations
+ * Service layer for Logistics operations with MongoDB
  */
 class LogisticsService {
   /**
    * Get all deliveries
-   * @returns {Object}
+   * @returns {Promise<Object>}
    */
-  static getAllDeliveries() {
-    const deliveries = LogisticsModel.getAllDeliveries();
+  static async getAllDeliveries() {
+    const deliveries = await Delivery.find();
     return {
       success: true,
       count: deliveries.length,
@@ -20,10 +20,10 @@ class LogisticsService {
   /**
    * Get a delivery by ID with tracking details
    * @param {string} id
-   * @returns {Object}
+   * @returns {Promise<Object>}
    */
-  static getDeliveryById(id) {
-    const delivery = LogisticsModel.getDeliveryById(id);
+  static async getDeliveryById(id) {
+    const delivery = await Delivery.findById(id);
     if (!delivery) {
       return {
         success: false,
@@ -39,28 +39,35 @@ class LogisticsService {
   /**
    * Create a new delivery
    * @param {Object} data
-   * @returns {Object}
+   * @returns {Promise<Object>}
    */
-  static createDelivery(data) {
-    const errors = [];
-    if (!data.orderId) errors.push('orderId is required');
-    if (!data.pickupAddress || data.pickupAddress.trim().length === 0) {
-      errors.push('pickupAddress is required');
+  static async createDelivery(data) {
+    try {
+      const deliveryData = {
+        ...data,
+        trackingHistory: [{
+          status: 'Created',
+          location: data.pickupAddress,
+          notes: 'Delivery order created'
+        }]
+      };
+      
+      const delivery = await Delivery.create(deliveryData);
+      return {
+        success: true,
+        message: 'Delivery created successfully',
+        data: delivery,
+      };
+    } catch (error) {
+      if (error.name === 'ValidationError') {
+        const messages = Object.values(error.errors).map(val => val.message);
+        return {
+          success: false,
+          errors: messages
+        };
+      }
+      throw error;
     }
-    if (!data.deliveryAddress || data.deliveryAddress.trim().length === 0) {
-      errors.push('deliveryAddress is required');
-    }
-
-    if (errors.length > 0) {
-      return { success: false, errors };
-    }
-
-    const delivery = LogisticsModel.createDelivery(data);
-    return {
-      success: true,
-      message: 'Delivery created successfully',
-      data: delivery,
-    };
   }
 }
 

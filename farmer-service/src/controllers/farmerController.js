@@ -4,9 +4,9 @@ const FarmerService = require('../services/farmerService');
  * @desc    Get all farmers
  * @route   GET /farmers
  */
-exports.getAllFarmers = (req, res) => {
+exports.getAllFarmers = async (req, res) => {
   try {
-    const result = FarmerService.getAllFarmers();
+    const result = await FarmerService.getAllFarmers();
     return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({
@@ -21,9 +21,9 @@ exports.getAllFarmers = (req, res) => {
  * @desc    Get a farmer by ID
  * @route   GET /farmers/:id
  */
-exports.getFarmerById = (req, res) => {
+exports.getFarmerById = async (req, res) => {
   try {
-    const result = FarmerService.getFarmerById(req.params.id);
+    const result = await FarmerService.getFarmerById(req.params.id);
     if (!result.success) {
       return res.status(404).json(result);
     }
@@ -41,9 +41,9 @@ exports.getFarmerById = (req, res) => {
  * @desc    Register a new farmer
  * @route   POST /farmers
  */
-exports.createFarmer = (req, res) => {
+exports.createFarmer = async (req, res) => {
   try {
-    const result = FarmerService.createFarmer(req.body);
+    const result = await FarmerService.createFarmer(req.body);
     if (!result.success) {
       return res.status(400).json(result);
     }

@@ -1,69 +1,54 @@
-const { v4: uuidv4 } = require('uuid');
+const mongoose = require('mongoose');
 
 /**
- * In-memory data store for Buyers
+ * Buyer Schema for MongoDB
  */
-const buyers = [
-  {
-    id: 'b001',
-    name: 'Lanka Fresh Pvt Ltd',
-    email: 'procurement@lankafresh.lk',
-    phone: '+94112345678',
-    company: 'Lanka Fresh Pvt Ltd',
-    buyerType: 'Wholesale',
-    preferredCrops: ['Rice', 'Vegetables'],
-    createdAt: '2026-01-20T09:00:00.000Z',
-    updatedAt: '2026-01-20T09:00:00.000Z',
+const buyerSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'Name is required'],
+    trim: true
   },
-  {
-    id: 'b002',
-    name: 'Green Mart Supermarket',
-    email: 'supply@greenmart.lk',
-    phone: '+94113456789',
-    company: 'Green Mart Holdings',
-    buyerType: 'Retail',
-    preferredCrops: ['Fruits', 'Spices', 'Tea'],
-    createdAt: '2026-02-05T11:30:00.000Z',
-    updatedAt: '2026-02-05T11:30:00.000Z',
+  email: {
+    type: String,
+    required: [true, 'Email is required'],
+    unique: true,
+    trim: true,
+    lowercase: true,
+    match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email format']
   },
-];
+  phone: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  company: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  buyerType: {
+    type: String,
+    enum: ['Wholesale', 'Retail', 'Export'],
+    default: 'Retail'
+  },
+  preferredCrops: {
+    type: [String],
+    default: []
+  }
+}, {
+  timestamps: true,
+  toJSON: {
+    virtuals: true,
+    transform: function(doc, ret) {
+      ret.id = ret._id;
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    }
+  }
+});
 
-/**
- * Retrieve all buyers
- * @returns {Array}
- */
-const getAllBuyers = () => buyers;
+const Buyer = mongoose.model('Buyer', buyerSchema);
 
-/**
- * Find a buyer by ID
- * @param {string} id
- * @returns {Object|undefined}
- */
-const getBuyerById = (id) => buyers.find((b) => b.id === id);
-
-/**
- * Create a new buyer
- * @param {Object} data
- * @returns {Object}
- */
-const createBuyer = (data) => {
-  const newBuyer = {
-    id: uuidv4(),
-    name: data.name,
-    email: data.email,
-    phone: data.phone || null,
-    company: data.company || null,
-    buyerType: data.buyerType || 'Retail',
-    preferredCrops: data.preferredCrops || [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-  buyers.push(newBuyer);
-  return newBuyer;
-};
-
-module.exports = {
-  getAllBuyers,
-  getBuyerById,
-  createBuyer,
-};
+module.exports = Buyer;

@@ -4,9 +4,9 @@ const PredictionService = require('../services/predictionService');
  * @desc    Predict price for a given crop
  * @route   GET /predict/:crop
  */
-exports.predictPrice = (req, res) => {
+exports.predictPrice = async (req, res) => {
   try {
-    const result = PredictionService.predictPrice(req.params.crop);
+    const result = await PredictionService.predictPrice(req.params.crop);
     if (!result.success) {
       return res.status(404).json(result);
     }
@@ -24,9 +24,9 @@ exports.predictPrice = (req, res) => {
  * @desc    Get all supported crops for prediction
  * @route   GET /crops
  */
-exports.getSupportedCrops = (req, res) => {
+exports.getSupportedCrops = async (req, res) => {
   try {
-    const result = PredictionService.getSupportedCrops();
+    const result = await PredictionService.getSupportedCrops();
     return res.status(200).json(result);
   } catch (error) {
     return res.status(500).json({

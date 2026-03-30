@@ -1,15 +1,15 @@
-const BuyerModel = require('../models/buyerModel');
+const Buyer = require('../models/buyerModel');
 
 /**
- * Service layer for Buyer operations
+ * Service layer for Buyer operations with MongoDB
  */
 class BuyerService {
   /**
    * Get all buyers
-   * @returns {Object}
+   * @returns {Promise<Object>}
    */
-  static getAllBuyers() {
-    const buyers = BuyerModel.getAllBuyers();
+  static async getAllBuyers() {
+    const buyers = await Buyer.find();
     return {
       success: true,
       count: buyers.length,
@@ -20,10 +20,10 @@ class BuyerService {
   /**
    * Get a buyer by ID
    * @param {string} id
-   * @returns {Object}
+   * @returns {Promise<Object>}
    */
-  static getBuyerById(id) {
-    const buyer = BuyerModel.getBuyerById(id);
+  static async getBuyerById(id) {
+    const buyer = await Buyer.findById(id);
     if (!buyer) {
       return {
         success: false,
@@ -39,33 +39,32 @@ class BuyerService {
   /**
    * Register a new buyer
    * @param {Object} data
-   * @returns {Object}
+   * @returns {Promise<Object>}
    */
-  static createBuyer(data) {
-    const errors = [];
-    if (!data.name || data.name.trim().length === 0) {
-      errors.push('Name is required');
+  static async createBuyer(data) {
+    try {
+      const buyer = await Buyer.create(data);
+      return {
+        success: true,
+        message: 'Buyer registered successfully',
+        data: buyer,
+      };
+    } catch (error) {
+      if (error.code === 11000) {
+        return {
+          success: false,
+          errors: ['Email already exists']
+        };
+      }
+      if (error.name === 'ValidationError') {
+        const messages = Object.values(error.errors).map(val => val.message);
+        return {
+          success: false,
+          errors: messages
+        };
+      }
+      throw error;
     }
-    if (!data.email || data.email.trim().length === 0) {
-      errors.push('Email is required');
-    }
-    if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-      errors.push('Invalid email format');
-    }
-    if (data.buyerType && !['Wholesale', 'Retail', 'Export'].includes(data.buyerType)) {
-      errors.push('buyerType must be one of: Wholesale, Retail, Export');
-    }
-
-    if (errors.length > 0) {
-      return { success: false, errors };
-    }
-
-    const buyer = BuyerModel.createBuyer(data);
-    return {
-      success: true,
-      message: 'Buyer registered successfully',
-      data: buyer,
-    };
   }
 }
 

@@ -1,7 +1,7 @@
-const PredictionModel = require('../models/predictionModel');
+const Crop = require('../models/predictionModel');
 
 /**
- * Service layer for Price Prediction operations
+ * Service layer for Price Prediction operations with MongoDB
  * Simulates crop price prediction using simple statistical methods
  */
 class PredictionService {
@@ -9,17 +9,18 @@ class PredictionService {
    * Predict the price for a given crop
    * Uses base price, volatility, seasonal factor, and simulated trend
    * @param {string} cropName
-   * @returns {Object}
+   * @returns {Promise<Object>}
    */
-  static predictPrice(cropName) {
-    const cropData = PredictionModel.getCropData(cropName);
+  static async predictPrice(cropName) {
+    const key = cropName.toLowerCase().replace(/\s+/g, '');
+    const cropData = await Crop.findOne({ key });
 
     if (!cropData) {
-      const supported = PredictionModel.getSupportedCrops();
+      const allCrops = await Crop.find();
       return {
         success: false,
         error: `Crop '${cropName}' is not supported for prediction`,
-        supportedCrops: supported.map((c) => c.name),
+        supportedCrops: allCrops.map((c) => c.name),
       };
     }
 
@@ -28,8 +29,8 @@ class PredictionService {
 
     // Calculate trend from historical data
     const prices = historicalPrices.map((h) => h.price);
-    const avgPrice = prices.reduce((sum, p) => sum + p, 0) / prices.length;
-    const trend = ((prices[prices.length - 1] - prices[0]) / prices[0]) * 100;
+    const avgPrice = prices.length > 0 ? (prices.reduce((sum, p) => sum + p, 0) / prices.length) : basePrice;
+    const trend = prices.length > 1 ? (((prices[prices.length - 1] - prices[0]) / prices[0]) * 100) : 0;
 
     // Simulated prediction with random variance
     const randomFactor = 1 + (Math.random() * volatility * 2 - volatility);
@@ -81,10 +82,10 @@ class PredictionService {
 
   /**
    * Get all supported crops for prediction
-   * @returns {Object}
+   * @returns {Promise<Object>}
    */
-  static getSupportedCrops() {
-    const crops = PredictionModel.getSupportedCrops();
+  static async getSupportedCrops() {
+    const crops = await Crop.find();
     return {
       success: true,
       count: crops.length,

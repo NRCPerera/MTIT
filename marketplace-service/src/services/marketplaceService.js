@@ -1,12 +1,12 @@
-const MarketplaceModel = require('../models/marketplaceModel');
+const { Product, Order } = require('../models/marketplaceModel');
 
 /**
- * Service layer for Marketplace operations
+ * Service layer for Marketplace operations with MongoDB
  */
 class MarketplaceService {
   // ─── Product Operations ──────────────────────────────────
-  static getAllProducts() {
-    const products = MarketplaceModel.getAllProducts();
+  static async getAllProducts() {
+    const products = await Product.find();
     return {
       success: true,
       count: products.length,
@@ -14,36 +14,38 @@ class MarketplaceService {
     };
   }
 
-  static getProductById(id) {
-    const product = MarketplaceModel.getProductById(id);
-    if (!product) {
-      return { success: false, error: `Product with ID '${id}' not found` };
+  static async getProductById(id) {
+    try {
+      const product = await Product.findById(id);
+      if (!product) {
+        return { success: false, error: `Product with ID '${id}' not found` };
+      }
+      return { success: true, data: product };
+    } catch (err) {
+      return { success: false, error: `Invalid ID format` };
     }
-    return { success: true, data: product };
   }
 
-  static createProduct(data) {
-    const errors = [];
-    if (!data.farmerId) errors.push('farmerId is required');
-    if (!data.cropName || data.cropName.trim().length === 0) errors.push('cropName is required');
-    if (!data.quantity || data.quantity <= 0) errors.push('quantity must be a positive number');
-    if (!data.pricePerUnit || data.pricePerUnit <= 0) errors.push('pricePerUnit must be a positive number');
-
-    if (errors.length > 0) {
-      return { success: false, errors };
+  static async createProduct(data) {
+    try {
+      const product = await Product.create(data);
+      return {
+        success: true,
+        message: 'Product listing created successfully',
+        data: product,
+      };
+    } catch (error) {
+      if (error.name === 'ValidationError') {
+        const messages = Object.values(error.errors).map(val => val.message);
+        return { success: false, errors: messages };
+      }
+      throw error;
     }
-
-    const product = MarketplaceModel.createProduct(data);
-    return {
-      success: true,
-      message: 'Product listing created successfully',
-      data: product,
-    };
   }
 
   // ─── Order Operations ────────────────────────────────────
-  static getAllOrders() {
-    const orders = MarketplaceModel.getAllOrders();
+  static async getAllOrders() {
+    const orders = await Order.find().populate('productId');
     return {
       success: true,
       count: orders.length,
@@ -51,32 +53,42 @@ class MarketplaceService {
     };
   }
 
-  static createOrder(data) {
-    const errors = [];
-    if (!data.buyerId) errors.push('buyerId is required');
-    if (!data.productId) errors.push('productId is required');
-    if (!data.quantity || data.quantity <= 0) errors.push('quantity must be a positive number');
-
-    // Check if product exists
-    if (data.productId) {
-      const product = MarketplaceModel.getProductById(data.productId);
+  static async createOrder(data) {
+    try {
+      // Check if product exists and has sufficient quantity
+      const product = await Product.findById(data.productId);
       if (!product) {
-        errors.push(`Product with ID '${data.productId}' not found`);
-      } else if (product.quantity < data.quantity) {
-        errors.push(`Insufficient stock. Available: ${product.quantity} ${product.unit}`);
+        return { success: false, error: `Product with ID '${data.productId}' not found` };
       }
-    }
+      
+      if (product.quantity < data.quantity) {
+        return { success: false, error: `Insufficient stock. Available: ${product.quantity} ${product.unit}` };
+      }
 
-    if (errors.length > 0) {
-      return { success: false, errors };
-    }
+      const orderData = {
+        ...data,
+        totalPrice: product.pricePerUnit * data.quantity,
+        currency: product.currency
+      };
+      
+      const order = await Order.create(orderData);
+      
+      // Update product quantity (basic atomic approach not implemented for brevity)
+      product.quantity -= data.quantity;
+      await product.save();
 
-    const order = MarketplaceModel.createOrder(data);
-    return {
-      success: true,
-      message: 'Order placed successfully',
-      data: order,
-    };
+      return {
+        success: true,
+        message: 'Order placed successfully',
+        data: order,
+      };
+    } catch (error) {
+      if (error.name === 'ValidationError') {
+        const messages = Object.values(error.errors).map(val => val.message);
+        return { success: false, errors: messages };
+      }
+      throw error;
+    }
   }
 }
 

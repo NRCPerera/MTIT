@@ -1,67 +1,49 @@
-const { v4: uuidv4 } = require('uuid');
+const mongoose = require('mongoose');
 
 /**
- * In-memory data store for Farmers
- * Each farmer object contains: id, name, email, phone, location, crops, createdAt
+ * Farmer Schema for MongoDB
  */
-const farmers = [
-  {
-    id: 'f001',
-    name: 'Nimal Perera',
-    email: 'nimal@farm.lk',
-    phone: '+94771234567',
-    location: 'Anuradhapura',
-    crops: ['Rice', 'Maize'],
-    createdAt: '2026-01-15T08:30:00.000Z',
-    updatedAt: '2026-01-15T08:30:00.000Z',
+const farmerSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'Name is required'],
+    trim: true
   },
-  {
-    id: 'f002',
-    name: 'Kamala Silva',
-    email: 'kamala@farm.lk',
-    phone: '+94779876543',
-    location: 'Kurunegala',
-    crops: ['Tea', 'Cinnamon'],
-    createdAt: '2026-02-10T10:00:00.000Z',
-    updatedAt: '2026-02-10T10:00:00.000Z',
+  email: {
+    type: String,
+    required: [true, 'Email is required'],
+    unique: true,
+    trim: true,
+    lowercase: true,
+    match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Invalid email format']
   },
-];
+  phone: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  location: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  crops: {
+    type: [String],
+    default: []
+  }
+}, {
+  timestamps: true,
+  toJSON: {
+    virtuals: true,
+    transform: function(doc, ret) {
+      ret.id = ret._id;
+      delete ret._id;
+      delete ret.__v;
+      return ret;
+    }
+  }
+});
 
-/**
- * Retrieve all farmers
- * @returns {Array} - List of all farmers
- */
-const getAllFarmers = () => farmers;
+const Farmer = mongoose.model('Farmer', farmerSchema);
 
-/**
- * Find a farmer by ID
- * @param {string} id - Farmer ID
- * @returns {Object|undefined} - Farmer object or undefined
- */
-const getFarmerById = (id) => farmers.find((f) => f.id === id);
-
-/**
- * Create a new farmer
- * @param {Object} data - Farmer data
- * @returns {Object} - Newly created farmer
- */
-const createFarmer = (data) => {
-  const newFarmer = {
-    id: uuidv4(),
-    name: data.name,
-    email: data.email,
-    phone: data.phone || null,
-    location: data.location || null,
-    crops: data.crops || [],
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
-  farmers.push(newFarmer);
-  return newFarmer;
-};
-
-module.exports = {
-  getAllFarmers,
-  getFarmerById,
-  createFarmer,
-};
+module.exports = Farmer;
