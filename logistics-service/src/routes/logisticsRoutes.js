@@ -1,6 +1,8 @@
 const express = require('express');
+const { body } = require('express-validator');
 const router = express.Router();
 const logisticsController = require('../controllers/logisticsController');
+const validate = require('../middleware/validator');
 
 /**
  * @swagger
@@ -137,6 +139,7 @@ const logisticsController = require('../controllers/logisticsController');
  *       404:
  *         description: Delivery not found
  */
+router.get('/deliveries', logisticsController.getAllDeliveries);
 router.get('/deliveries/:id', logisticsController.getDeliveryById);
 
 /**
@@ -168,6 +171,18 @@ router.get('/deliveries/:id', logisticsController.getDeliveryById);
  *       400:
  *         description: Validation error
  */
-router.post('/deliveries', logisticsController.createDelivery);
+router.post('/deliveries', 
+  [
+    body('orderId').notEmpty().withMessage('Order ID is required'),
+    body('pickupAddress').notEmpty().withMessage('Pickup address is required').trim(),
+    body('deliveryAddress').notEmpty().withMessage('Delivery address is required').trim(),
+    body('estimatedDeliveryDate').optional().isISO8601().withMessage('Invalid estimated delivery date format'),
+    body('driverName').optional().isString().withMessage('Driver name must be a string'),
+    body('driverPhone').optional().isString().withMessage('Driver phone must be a string'),
+    body('vehicleNumber').optional().isString().withMessage('Vehicle number must be a string')
+  ],
+  validate,
+  logisticsController.createDelivery
+);
 
 module.exports = router;

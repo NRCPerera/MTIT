@@ -1,6 +1,8 @@
 const express = require('express');
+const { body } = require('express-validator');
 const router = express.Router();
 const marketplaceController = require('../controllers/marketplaceController');
+const validate = require('../middleware/validator');
 
 /**
  * @swagger
@@ -190,7 +192,20 @@ router.get('/products', marketplaceController.getAllProducts);
  *       400:
  *         description: Validation error
  */
-router.post('/products', marketplaceController.createProduct);
+router.post('/products', 
+  [
+    body('farmerId').notEmpty().withMessage('Farmer ID is required'),
+    body('cropName').notEmpty().withMessage('Crop name is required').trim(),
+    body('quantity').isNumeric().withMessage('Quantity must be a number').custom(value => value > 0).withMessage('Quantity must be greater than 0'),
+    body('pricePerUnit').isNumeric().withMessage('Price per unit must be a number').custom(value => value > 0).withMessage('Price must be greater than 0'),
+    body('category').optional().isString().withMessage('Category must be a string'),
+    body('unit').optional().isString().withMessage('Unit must be a string'),
+    body('currency').optional().isString().withMessage('Currency must be a string'),
+    body('harvestDate').optional().isISO8601().withMessage('Invalid harvest date format')
+  ],
+  validate,
+  marketplaceController.createProduct
+);
 
 /**
  * @swagger
@@ -221,6 +236,16 @@ router.post('/products', marketplaceController.createProduct);
  *       400:
  *         description: Validation error
  */
-router.post('/orders', marketplaceController.createOrder);
+router.get('/orders', marketplaceController.getAllOrders);
+router.post('/orders', 
+  [
+    body('buyerId').notEmpty().withMessage('Buyer ID is required'),
+    body('productId').isMongoId().withMessage('Valid Product ID is required'),
+    body('quantity').isNumeric().withMessage('Quantity must be a number').custom(value => value > 0).withMessage('Quantity must be greater than 0'),
+    body('deliveryAddress').notEmpty().withMessage('Delivery address is required').trim()
+  ],
+  validate,
+  marketplaceController.createOrder
+);
 
 module.exports = router;

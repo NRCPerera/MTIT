@@ -1,6 +1,8 @@
 const express = require('express');
+const { param } = require('express-validator');
 const router = express.Router();
 const predictionController = require('../controllers/predictionController');
+const validate = require('../middleware/validator');
 
 /**
  * @swagger
@@ -143,7 +145,13 @@ const predictionController = require('../controllers/predictionController');
  *                     type: string
  *                   example: ["Rice", "Tea", "Cinnamon", "Coconut", "Black Pepper", "Rubber", "Maize", "Mixed Vegetables"]
  */
-router.get('/predict/:crop', predictionController.predictPrice);
+router.get('/predict/:crop', 
+  [
+    param('crop').isString().withMessage('Crop name must be a string').trim().notEmpty().withMessage('Crop name is required')
+  ],
+  validate,
+  predictionController.predictPrice
+);
 
 /**
  * @swagger

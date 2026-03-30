@@ -1,6 +1,8 @@
 const express = require('express');
+const { body } = require('express-validator');
 const router = express.Router();
 const farmerController = require('../controllers/farmerController');
+const validate = require('../middleware/validator');
 
 /**
  * @swagger
@@ -183,6 +185,16 @@ router.get('/:id', farmerController.getFarmerById);
  *                     type: string
  *                   example: ["Name is required", "Invalid email format"]
  */
-router.post('/', farmerController.createFarmer);
+router.post('/', 
+  [
+    body('name').notEmpty().withMessage('Name is required').trim(),
+    body('email').isEmail().withMessage('Please provide a valid email address').normalizeEmail(),
+    body('phone').optional().isString().withMessage('Phone must be a string'),
+    body('location').optional().isString().withMessage('Location must be a string'),
+    body('crops').optional().isArray().withMessage('Crops must be an array')
+  ],
+  validate,
+  farmerController.createFarmer
+);
 
 module.exports = router;

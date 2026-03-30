@@ -1,6 +1,8 @@
 const express = require('express');
+const { body } = require('express-validator');
 const router = express.Router();
 const buyerController = require('../controllers/buyerController');
+const validate = require('../middleware/validator');
 
 /**
  * @swagger
@@ -160,6 +162,17 @@ router.get('/:id', buyerController.getBuyerById);
  *       400:
  *         description: Validation error
  */
-router.post('/', buyerController.createBuyer);
+router.post('/', 
+  [
+    body('name').notEmpty().withMessage('Name is required').trim(),
+    body('email').isEmail().withMessage('Please provide a valid email address').normalizeEmail(),
+    body('buyerType').optional().isIn(['Wholesale', 'Retail', 'Export']).withMessage('Invalid buyer type'),
+    body('phone').optional().isString().withMessage('Phone must be a string'),
+    body('company').optional().isString().withMessage('Company must be a string'),
+    body('preferredCrops').optional().isArray().withMessage('Preferred crops must be an array')
+  ],
+  validate, 
+  buyerController.createBuyer
+);
 
 module.exports = router;
