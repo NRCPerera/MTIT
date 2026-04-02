@@ -56,3 +56,46 @@ exports.createDelivery = async (req, res) => {
     });
   }
 };
+
+/**
+ * @desc    Update an existing delivery
+ * @route   PUT /deliveries/:id
+ */
+exports.updateDelivery = async (req, res) => {
+  try {
+    const result = await LogisticsService.updateDelivery(req.params.id, req.body);
+    if (!result.success) {
+      if (result.errors) {
+        return res.status(400).json(result);
+      }
+      return res.status(404).json(result);
+    }
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Internal Server Error',
+      message: error.message,
+    });
+  }
+};
+
+/**
+ * @desc    Delete a delivery
+ * @route   DELETE /deliveries/:id
+ */
+exports.deleteDelivery = async (req, res) => {
+  try {
+    const result = await LogisticsService.deleteDelivery(req.params.id);
+    if (!result.success) {
+      return res.status(404).json(result);
+    }
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Internal Server Error',
+      message: error.message,
+    });
+  }
+};

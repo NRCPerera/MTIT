@@ -138,6 +138,8 @@ const validate = require('../middleware/validator');
  *           example: "12 Harbor Rd, Galle"
  */
 
+// ─── Product Routes ─────────────────────────────────────────
+
 /**
  * @swagger
  * /products:
@@ -162,6 +164,27 @@ const validate = require('../middleware/validator');
  *                     $ref: '#/components/schemas/Product'
  */
 router.get('/products', marketplaceController.getAllProducts);
+
+/**
+ * @swagger
+ * /products/{id}:
+ *   get:
+ *     summary: Get a product by ID
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Product ID
+ *     responses:
+ *       200:
+ *         description: Product found
+ *       404:
+ *         description: Product not found
+ */
+router.get('/products/:id', marketplaceController.getProductById);
 
 /**
  * @swagger
@@ -209,6 +232,105 @@ router.post('/products',
 
 /**
  * @swagger
+ * /products/{id}:
+ *   put:
+ *     summary: Update an existing product
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Product ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ProductInput'
+ *     responses:
+ *       200:
+ *         description: Product updated successfully
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: Product not found
+ */
+router.put('/products/:id',
+  [
+    body('farmerId').optional().notEmpty().withMessage('Farmer ID cannot be empty'),
+    body('cropName').optional().notEmpty().withMessage('Crop name cannot be empty').trim(),
+    body('quantity').optional().isNumeric().withMessage('Quantity must be a number'),
+    body('pricePerUnit').optional().isNumeric().withMessage('Price per unit must be a number'),
+    body('category').optional().isString().withMessage('Category must be a string'),
+    body('unit').optional().isString().withMessage('Unit must be a string'),
+    body('currency').optional().isString().withMessage('Currency must be a string'),
+    body('status').optional().isIn(['Available', 'Out of Stock', 'Sold']).withMessage('Invalid product status'),
+    body('harvestDate').optional().isISO8601().withMessage('Invalid harvest date format')
+  ],
+  validate,
+  marketplaceController.updateProduct
+);
+
+/**
+ * @swagger
+ * /products/{id}:
+ *   delete:
+ *     summary: Delete a product
+ *     tags: [Products]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Product ID
+ *     responses:
+ *       200:
+ *         description: Product deleted successfully
+ *       404:
+ *         description: Product not found
+ */
+router.delete('/products/:id', marketplaceController.deleteProduct);
+
+// ─── Order Routes ───────────────────────────────────────────
+
+/**
+ * @swagger
+ * /orders:
+ *   get:
+ *     summary: Get all orders
+ *     tags: [Orders]
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved all orders
+ */
+router.get('/orders', marketplaceController.getAllOrders);
+
+/**
+ * @swagger
+ * /orders/{id}:
+ *   get:
+ *     summary: Get an order by ID
+ *     tags: [Orders]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Order ID
+ *     responses:
+ *       200:
+ *         description: Order found
+ *       404:
+ *         description: Order not found
+ */
+router.get('/orders/:id', marketplaceController.getOrderById);
+
+/**
+ * @swagger
  * /orders:
  *   post:
  *     summary: Place a new order
@@ -236,7 +358,6 @@ router.post('/products',
  *       400:
  *         description: Validation error
  */
-router.get('/orders', marketplaceController.getAllOrders);
 router.post('/orders', 
   [
     body('buyerId').notEmpty().withMessage('Buyer ID is required'),
@@ -247,5 +368,68 @@ router.post('/orders',
   validate,
   marketplaceController.createOrder
 );
+
+/**
+ * @swagger
+ * /orders/{id}:
+ *   put:
+ *     summary: Update an existing order
+ *     tags: [Orders]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Order ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [Pending, Confirmed, Shipped, Delivered, Cancelled]
+ *               deliveryAddress:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Order updated successfully
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: Order not found
+ */
+router.put('/orders/:id',
+  [
+    body('status').optional().isIn(['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled']).withMessage('Invalid order status'),
+    body('deliveryAddress').optional().notEmpty().withMessage('Delivery address cannot be empty').trim()
+  ],
+  validate,
+  marketplaceController.updateOrder
+);
+
+/**
+ * @swagger
+ * /orders/{id}:
+ *   delete:
+ *     summary: Delete an order
+ *     tags: [Orders]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Order ID
+ *     responses:
+ *       200:
+ *         description: Order deleted successfully
+ *       404:
+ *         description: Order not found
+ */
+router.delete('/orders/:id', marketplaceController.deleteOrder);
 
 module.exports = router;

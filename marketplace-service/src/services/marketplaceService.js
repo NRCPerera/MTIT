@@ -43,6 +43,52 @@ class MarketplaceService {
     }
   }
 
+  /**
+   * Update an existing product by ID
+   * @param {string} id
+   * @param {Object} data
+   * @returns {Promise<Object>}
+   */
+  static async updateProduct(id, data) {
+    try {
+      const product = await Product.findByIdAndUpdate(id, data, {
+        new: true,
+        runValidators: true,
+      });
+      if (!product) {
+        return { success: false, error: `Product with ID '${id}' not found` };
+      }
+      return {
+        success: true,
+        message: 'Product updated successfully',
+        data: product,
+      };
+    } catch (error) {
+      if (error.name === 'ValidationError') {
+        const messages = Object.values(error.errors).map(val => val.message);
+        return { success: false, errors: messages };
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a product by ID
+   * @param {string} id
+   * @returns {Promise<Object>}
+   */
+  static async deleteProduct(id) {
+    const product = await Product.findByIdAndDelete(id);
+    if (!product) {
+      return { success: false, error: `Product with ID '${id}' not found` };
+    }
+    return {
+      success: true,
+      message: 'Product deleted successfully',
+      data: product,
+    };
+  }
+
   // ─── Order Operations ────────────────────────────────────
   static async getAllOrders() {
     const orders = await Order.find().populate('productId');
@@ -51,6 +97,23 @@ class MarketplaceService {
       count: orders.length,
       data: orders,
     };
+  }
+
+  /**
+   * Get an order by ID
+   * @param {string} id
+   * @returns {Promise<Object>}
+   */
+  static async getOrderById(id) {
+    try {
+      const order = await Order.findById(id).populate('productId');
+      if (!order) {
+        return { success: false, error: `Order with ID '${id}' not found` };
+      }
+      return { success: true, data: order };
+    } catch (err) {
+      return { success: false, error: `Invalid ID format` };
+    }
   }
 
   static async createOrder(data) {
@@ -89,6 +152,52 @@ class MarketplaceService {
       }
       throw error;
     }
+  }
+
+  /**
+   * Update an existing order by ID
+   * @param {string} id
+   * @param {Object} data
+   * @returns {Promise<Object>}
+   */
+  static async updateOrder(id, data) {
+    try {
+      const order = await Order.findByIdAndUpdate(id, data, {
+        new: true,
+        runValidators: true,
+      });
+      if (!order) {
+        return { success: false, error: `Order with ID '${id}' not found` };
+      }
+      return {
+        success: true,
+        message: 'Order updated successfully',
+        data: order,
+      };
+    } catch (error) {
+      if (error.name === 'ValidationError') {
+        const messages = Object.values(error.errors).map(val => val.message);
+        return { success: false, errors: messages };
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Delete an order by ID
+   * @param {string} id
+   * @returns {Promise<Object>}
+   */
+  static async deleteOrder(id) {
+    const order = await Order.findByIdAndDelete(id);
+    if (!order) {
+      return { success: false, error: `Order with ID '${id}' not found` };
+    }
+    return {
+      success: true,
+      message: 'Order deleted successfully',
+      data: order,
+    };
   }
 }
 

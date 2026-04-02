@@ -175,4 +175,91 @@ router.post('/',
   buyerController.createBuyer
 );
 
+/**
+ * @swagger
+ * /buyers/{id}:
+ *   put:
+ *     summary: Update an existing buyer
+ *     tags: [Buyers]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Buyer ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/BuyerInput'
+ *     responses:
+ *       200:
+ *         description: Buyer updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Buyer updated successfully"
+ *                 data:
+ *                   $ref: '#/components/schemas/Buyer'
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: Buyer not found
+ */
+router.put('/:id',
+  [
+    body('name').optional().notEmpty().withMessage('Name cannot be empty').trim(),
+    body('email').optional().isEmail().withMessage('Please provide a valid email address').normalizeEmail(),
+    body('buyerType').optional().isIn(['Wholesale', 'Retail', 'Export']).withMessage('Invalid buyer type'),
+    body('phone').optional().isString().withMessage('Phone must be a string'),
+    body('company').optional().isString().withMessage('Company must be a string'),
+    body('preferredCrops').optional().isArray().withMessage('Preferred crops must be an array')
+  ],
+  validate,
+  buyerController.updateBuyer
+);
+
+/**
+ * @swagger
+ * /buyers/{id}:
+ *   delete:
+ *     summary: Delete a buyer
+ *     tags: [Buyers]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Buyer ID
+ *     responses:
+ *       200:
+ *         description: Buyer deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Buyer deleted successfully"
+ *                 data:
+ *                   $ref: '#/components/schemas/Buyer'
+ *       404:
+ *         description: Buyer not found
+ */
+router.delete('/:id', buyerController.deleteBuyer);
+
 module.exports = router;

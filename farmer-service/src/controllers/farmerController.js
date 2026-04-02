@@ -56,3 +56,46 @@ exports.createFarmer = async (req, res) => {
     });
   }
 };
+
+/**
+ * @desc    Update an existing farmer
+ * @route   PUT /farmers/:id
+ */
+exports.updateFarmer = async (req, res) => {
+  try {
+    const result = await FarmerService.updateFarmer(req.params.id, req.body);
+    if (!result.success) {
+      if (result.errors) {
+        return res.status(400).json(result);
+      }
+      return res.status(404).json(result);
+    }
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Internal Server Error',
+      message: error.message,
+    });
+  }
+};
+
+/**
+ * @desc    Delete a farmer
+ * @route   DELETE /farmers/:id
+ */
+exports.deleteFarmer = async (req, res) => {
+  try {
+    const result = await FarmerService.deleteFarmer(req.params.id);
+    if (!result.success) {
+      return res.status(404).json(result);
+    }
+    return res.status(200).json(result);
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      error: 'Internal Server Error',
+      message: error.message,
+    });
+  }
+};

@@ -92,6 +92,125 @@ class PredictionService {
       data: crops,
     };
   }
+
+  /**
+   * Get a single crop by ID
+   * @param {string} id
+   * @returns {Promise<Object>}
+   */
+  static async getCropById(id) {
+    const crop = await Crop.findById(id);
+    if (!crop) {
+      return {
+        success: false,
+        error: `Crop with ID '${id}' not found`,
+      };
+    }
+    return {
+      success: true,
+      data: crop,
+    };
+  }
+
+  /**
+   * Create a new crop entry for prediction
+   * @param {Object} data
+   * @returns {Promise<Object>}
+   */
+  static async createCrop(data) {
+    try {
+      // Auto-generate the key from the name
+      if (data.name && !data.key) {
+        data.key = data.name.toLowerCase().replace(/\s+/g, '');
+      }
+      const crop = await Crop.create(data);
+      return {
+        success: true,
+        message: 'Crop created successfully',
+        data: crop,
+      };
+    } catch (error) {
+      if (error.code === 11000) {
+        return {
+          success: false,
+          errors: ['A crop with this key already exists'],
+        };
+      }
+      if (error.name === 'ValidationError') {
+        const messages = Object.values(error.errors).map(val => val.message);
+        return {
+          success: false,
+          errors: messages,
+        };
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Update an existing crop by ID
+   * @param {string} id
+   * @param {Object} data
+   * @returns {Promise<Object>}
+   */
+  static async updateCrop(id, data) {
+    try {
+      // Auto-update key if name is changed
+      if (data.name && !data.key) {
+        data.key = data.name.toLowerCase().replace(/\s+/g, '');
+      }
+      const crop = await Crop.findByIdAndUpdate(id, data, {
+        new: true,
+        runValidators: true,
+      });
+      if (!crop) {
+        return {
+          success: false,
+          error: `Crop with ID '${id}' not found`,
+        };
+      }
+      return {
+        success: true,
+        message: 'Crop updated successfully',
+        data: crop,
+      };
+    } catch (error) {
+      if (error.code === 11000) {
+        return {
+          success: false,
+          errors: ['A crop with this key already exists'],
+        };
+      }
+      if (error.name === 'ValidationError') {
+        const messages = Object.values(error.errors).map(val => val.message);
+        return {
+          success: false,
+          errors: messages,
+        };
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Delete a crop by ID
+   * @param {string} id
+   * @returns {Promise<Object>}
+   */
+  static async deleteCrop(id) {
+    const crop = await Crop.findByIdAndDelete(id);
+    if (!crop) {
+      return {
+        success: false,
+        error: `Crop with ID '${id}' not found`,
+      };
+    }
+    return {
+      success: true,
+      message: 'Crop deleted successfully',
+      data: crop,
+    };
+  }
 }
 
 module.exports = PredictionService;

@@ -197,4 +197,90 @@ router.post('/',
   farmerController.createFarmer
 );
 
+/**
+ * @swagger
+ * /farmers/{id}:
+ *   put:
+ *     summary: Update an existing farmer
+ *     tags: [Farmers]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Farmer ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/FarmerInput'
+ *     responses:
+ *       200:
+ *         description: Farmer updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Farmer updated successfully"
+ *                 data:
+ *                   $ref: '#/components/schemas/Farmer'
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: Farmer not found
+ */
+router.put('/:id',
+  [
+    body('name').optional().notEmpty().withMessage('Name cannot be empty').trim(),
+    body('email').optional().isEmail().withMessage('Please provide a valid email address').normalizeEmail(),
+    body('phone').optional().isString().withMessage('Phone must be a string'),
+    body('location').optional().isString().withMessage('Location must be a string'),
+    body('crops').optional().isArray().withMessage('Crops must be an array')
+  ],
+  validate,
+  farmerController.updateFarmer
+);
+
+/**
+ * @swagger
+ * /farmers/{id}:
+ *   delete:
+ *     summary: Delete a farmer
+ *     tags: [Farmers]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Farmer ID
+ *     responses:
+ *       200:
+ *         description: Farmer deleted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Farmer deleted successfully"
+ *                 data:
+ *                   $ref: '#/components/schemas/Farmer'
+ *       404:
+ *         description: Farmer not found
+ */
+router.delete('/:id', farmerController.deleteFarmer);
+
 module.exports = router;

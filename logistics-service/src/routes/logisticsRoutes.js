@@ -112,6 +112,18 @@ const validate = require('../middleware/validator');
 
 /**
  * @swagger
+ * /deliveries:
+ *   get:
+ *     summary: Get all deliveries
+ *     tags: [Deliveries]
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved all deliveries
+ */
+router.get('/deliveries', logisticsController.getAllDeliveries);
+
+/**
+ * @swagger
  * /deliveries/{id}:
  *   get:
  *     summary: Track a delivery by ID
@@ -139,7 +151,6 @@ const validate = require('../middleware/validator');
  *       404:
  *         description: Delivery not found
  */
-router.get('/deliveries', logisticsController.getAllDeliveries);
 router.get('/deliveries/:id', logisticsController.getDeliveryById);
 
 /**
@@ -184,5 +195,84 @@ router.post('/deliveries',
   validate,
   logisticsController.createDelivery
 );
+
+/**
+ * @swagger
+ * /deliveries/{id}:
+ *   put:
+ *     summary: Update an existing delivery
+ *     tags: [Deliveries]
+ *     description: Updates delivery details. When the status changes, a new tracking history entry is automatically created.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Delivery ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [Pending Pickup, Picked Up, In Transit, Out for Delivery, Delivered, Cancelled]
+ *               driverName:
+ *                 type: string
+ *               driverPhone:
+ *                 type: string
+ *               vehicleNumber:
+ *                 type: string
+ *               currentLocation:
+ *                 type: string
+ *                 description: Current location for tracking entry
+ *               trackingNotes:
+ *                 type: string
+ *                 description: Notes for the tracking entry
+ *     responses:
+ *       200:
+ *         description: Delivery updated successfully
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: Delivery not found
+ */
+router.put('/deliveries/:id',
+  [
+    body('status').optional().isIn(['Pending Pickup', 'Picked Up', 'In Transit', 'Out for Delivery', 'Delivered', 'Cancelled']).withMessage('Invalid delivery status'),
+    body('driverName').optional().isString().withMessage('Driver name must be a string'),
+    body('driverPhone').optional().isString().withMessage('Driver phone must be a string'),
+    body('vehicleNumber').optional().isString().withMessage('Vehicle number must be a string'),
+    body('pickupAddress').optional().notEmpty().withMessage('Pickup address cannot be empty').trim(),
+    body('deliveryAddress').optional().notEmpty().withMessage('Delivery address cannot be empty').trim(),
+    body('estimatedDeliveryDate').optional().isISO8601().withMessage('Invalid estimated delivery date format')
+  ],
+  validate,
+  logisticsController.updateDelivery
+);
+
+/**
+ * @swagger
+ * /deliveries/{id}:
+ *   delete:
+ *     summary: Delete a delivery
+ *     tags: [Deliveries]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Delivery ID
+ *     responses:
+ *       200:
+ *         description: Delivery deleted successfully
+ *       404:
+ *         description: Delivery not found
+ */
+router.delete('/deliveries/:id', logisticsController.deleteDelivery);
 
 module.exports = router;

@@ -1,5 +1,5 @@
 const express = require('express');
-const { param } = require('express-validator');
+const { param, body } = require('express-validator');
 const router = express.Router();
 const predictionController = require('../controllers/predictionController');
 const validate = require('../middleware/validator');
@@ -95,6 +95,37 @@ const validate = require('../middleware/validator');
  *         unit:
  *           type: string
  *           example: "per kg"
+ *     CropInput:
+ *       type: object
+ *       required:
+ *         - name
+ *         - basePrice
+ *       properties:
+ *         name:
+ *           type: string
+ *           example: "Wheat"
+ *         basePrice:
+ *           type: number
+ *           example: 150.00
+ *         currency:
+ *           type: string
+ *           example: "LKR"
+ *         unit:
+ *           type: string
+ *           example: "per kg"
+ *         season:
+ *           type: string
+ *           example: "Maha"
+ *         demandLevel:
+ *           type: string
+ *           example: "Medium"
+ *         volatility:
+ *           type: number
+ *           example: 0.1
+ *         historicalPrices:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/HistoricalPrice'
  */
 
 /**
@@ -177,5 +208,122 @@ router.get('/predict/:crop',
  *                     $ref: '#/components/schemas/SupportedCrop'
  */
 router.get('/crops', predictionController.getSupportedCrops);
+
+/**
+ * @swagger
+ * /crops/{id}:
+ *   get:
+ *     summary: Get a crop by ID
+ *     tags: [Prediction]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Crop ID
+ *     responses:
+ *       200:
+ *         description: Crop found
+ *       404:
+ *         description: Crop not found
+ */
+router.get('/crops/:id', predictionController.getCropById);
+
+/**
+ * @swagger
+ * /crops:
+ *   post:
+ *     summary: Create a new crop entry for prediction
+ *     tags: [Prediction]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CropInput'
+ *     responses:
+ *       201:
+ *         description: Crop created successfully
+ *       400:
+ *         description: Validation error
+ */
+router.post('/crops',
+  [
+    body('name').notEmpty().withMessage('Crop name is required').trim(),
+    body('basePrice').isNumeric().withMessage('Base price must be a number'),
+    body('currency').optional().isString().withMessage('Currency must be a string'),
+    body('unit').optional().isString().withMessage('Unit must be a string'),
+    body('season').optional().isString().withMessage('Season must be a string'),
+    body('demandLevel').optional().isString().withMessage('Demand level must be a string'),
+    body('volatility').optional().isFloat({ min: 0, max: 1 }).withMessage('Volatility must be a number between 0 and 1'),
+    body('historicalPrices').optional().isArray().withMessage('Historical prices must be an array')
+  ],
+  validate,
+  predictionController.createCrop
+);
+
+/**
+ * @swagger
+ * /crops/{id}:
+ *   put:
+ *     summary: Update an existing crop
+ *     tags: [Prediction]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Crop ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CropInput'
+ *     responses:
+ *       200:
+ *         description: Crop updated successfully
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: Crop not found
+ */
+router.put('/crops/:id',
+  [
+    body('name').optional().notEmpty().withMessage('Crop name cannot be empty').trim(),
+    body('basePrice').optional().isNumeric().withMessage('Base price must be a number'),
+    body('currency').optional().isString().withMessage('Currency must be a string'),
+    body('unit').optional().isString().withMessage('Unit must be a string'),
+    body('season').optional().isString().withMessage('Season must be a string'),
+    body('demandLevel').optional().isString().withMessage('Demand level must be a string'),
+    body('volatility').optional().isFloat({ min: 0, max: 1 }).withMessage('Volatility must be a number between 0 and 1'),
+    body('historicalPrices').optional().isArray().withMessage('Historical prices must be an array')
+  ],
+  validate,
+  predictionController.updateCrop
+);
+
+/**
+ * @swagger
+ * /crops/{id}:
+ *   delete:
+ *     summary: Delete a crop
+ *     tags: [Prediction]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Crop ID
+ *     responses:
+ *       200:
+ *         description: Crop deleted successfully
+ *       404:
+ *         description: Crop not found
+ */
+router.delete('/crops/:id', predictionController.deleteCrop);
 
 module.exports = router;
