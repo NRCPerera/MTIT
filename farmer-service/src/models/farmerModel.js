@@ -1,9 +1,16 @@
 const mongoose = require('mongoose');
+const { v4: uuidv4 } = require('uuid');
 
 /**
  * Farmer Schema for MongoDB
  */
 const farmerSchema = new mongoose.Schema({
+  farmerId: {
+    type: String,
+    unique: true,
+    default: uuidv4,
+    index: true
+  },
   name: {
     type: String,
     required: [true, 'Name is required'],
@@ -36,7 +43,6 @@ const farmerSchema = new mongoose.Schema({
   toJSON: {
     virtuals: true,
     transform: function(doc, ret) {
-      ret.id = ret._id;
       delete ret._id;
       delete ret.__v;
       return ret;

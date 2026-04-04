@@ -18,12 +18,12 @@ exports.getAllFarmers = async (req, res) => {
 };
 
 /**
- * @desc    Get a farmer by ID
- * @route   GET /farmers/:id
+ * @desc    Get a farmer by farmerId
+ * @route   GET /farmers/:farmerId
  */
 exports.getFarmerById = async (req, res) => {
   try {
-    const result = await FarmerService.getFarmerById(req.params.id);
+    const result = await FarmerService.getFarmerById(req.params.farmerId);
     if (!result.success) {
       return res.status(404).json(result);
     }
@@ -59,11 +59,11 @@ exports.createFarmer = async (req, res) => {
 
 /**
  * @desc    Update an existing farmer
- * @route   PUT /farmers/:id
+ * @route   PUT /farmers/:farmerId
  */
 exports.updateFarmer = async (req, res) => {
   try {
-    const result = await FarmerService.updateFarmer(req.params.id, req.body);
+    const result = await FarmerService.updateFarmer(req.params.farmerId, req.body);
     if (!result.success) {
       if (result.errors) {
         return res.status(400).json(result);
@@ -82,11 +82,11 @@ exports.updateFarmer = async (req, res) => {
 
 /**
  * @desc    Delete a farmer
- * @route   DELETE /farmers/:id
+ * @route   DELETE /farmers/:farmerId
  */
 exports.deleteFarmer = async (req, res) => {
   try {
-    const result = await FarmerService.deleteFarmer(req.params.id);
+    const result = await FarmerService.deleteFarmer(req.params.farmerId);
     if (!result.success) {
       return res.status(404).json(result);
     }
@@ -99,3 +99,4 @@ exports.deleteFarmer = async (req, res) => {
     });
   }
 };
+

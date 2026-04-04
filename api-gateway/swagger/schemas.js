@@ -2,6 +2,23 @@
  * Shared Swagger component schemas used across all services
  */
 module.exports = {
+  Farmer: {
+    type: 'object',
+    properties: {
+      farmerId: { type: 'string', description: 'Auto-generated UUID', example: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' },
+      name: { type: 'string', example: 'Sunil Fernando' },
+      email: { type: 'string', example: 'sunil@farm.lk' },
+      phone: { type: 'string', example: '+94775551234' },
+      location: { type: 'string', example: 'Polonnaruwa' },
+      crops: {
+        type: 'array',
+        items: { type: 'string' },
+        example: ['Vegetables', 'Paddy'],
+      },
+      createdAt: { type: 'string', format: 'date-time' },
+      updatedAt: { type: 'string', format: 'date-time' },
+    },
+  },
   FarmerInput: {
     type: 'object',
     required: ['name', 'email'],

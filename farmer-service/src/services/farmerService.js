@@ -18,16 +18,16 @@ class FarmerService {
   }
 
   /**
-   * Get a single farmer by ID
-   * @param {string} id
+   * Get a single farmer by farmerId
+   * @param {string} farmerId
    * @returns {Promise<Object>}
    */
-  static async getFarmerById(id) {
-    const farmer = await Farmer.findById(id);
+  static async getFarmerById(farmerId) {
+    const farmer = await Farmer.findOne({ farmerId });
     if (!farmer) {
       return {
         success: false,
-        error: `Farmer with ID '${id}' not found`,
+        error: `Farmer with ID '${farmerId}' not found`,
       };
     }
     return {
@@ -68,21 +68,21 @@ class FarmerService {
   }
 
   /**
-   * Update an existing farmer by ID
-   * @param {string} id
+   * Update an existing farmer by farmerId
+   * @param {string} farmerId
    * @param {Object} data
    * @returns {Promise<Object>}
    */
-  static async updateFarmer(id, data) {
+  static async updateFarmer(farmerId, data) {
     try {
-      const farmer = await Farmer.findByIdAndUpdate(id, data, {
+      const farmer = await Farmer.findOneAndUpdate({ farmerId }, data, {
         new: true,
         runValidators: true,
       });
       if (!farmer) {
         return {
           success: false,
-          error: `Farmer with ID '${id}' not found`,
+          error: `Farmer with ID '${farmerId}' not found`,
         };
       }
       return {
@@ -109,16 +109,16 @@ class FarmerService {
   }
 
   /**
-   * Delete a farmer by ID
-   * @param {string} id
+   * Delete a farmer by farmerId
+   * @param {string} farmerId
    * @returns {Promise<Object>}
    */
-  static async deleteFarmer(id) {
-    const farmer = await Farmer.findByIdAndDelete(id);
+  static async deleteFarmer(farmerId) {
+    const farmer = await Farmer.findOneAndDelete({ farmerId });
     if (!farmer) {
       return {
         success: false,
-        error: `Farmer with ID '${id}' not found`,
+        error: `Farmer with ID '${farmerId}' not found`,
       };
     }
     return {
@@ -130,3 +130,4 @@ class FarmerService {
 }
 
 module.exports = FarmerService;
+

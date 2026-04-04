@@ -14,10 +14,10 @@ const validate = require('../middleware/validator');
  *         - name
  *         - email
  *       properties:
- *         id:
+ *         farmerId:
  *           type: string
  *           description: Auto-generated UUID
- *           example: "f001"
+ *           example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
  *         name:
  *           type: string
  *           description: Full name of the farmer
@@ -100,18 +100,18 @@ router.get('/', farmerController.getAllFarmers);
 
 /**
  * @swagger
- * /farmers/{id}:
+ * /farmers/{farmerId}:
  *   get:
  *     summary: Get a farmer by ID
  *     tags: [Farmers]
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: farmerId
  *         required: true
  *         schema:
  *           type: string
- *         description: Farmer ID
- *         example: "f001"
+ *         description: Farmer UUID
+ *         example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
  *     responses:
  *       200:
  *         description: Farmer found
@@ -139,7 +139,7 @@ router.get('/', farmerController.getAllFarmers);
  *                   type: string
  *                   example: "Farmer with ID 'xyz' not found"
  */
-router.get('/:id', farmerController.getFarmerById);
+router.get('/:farmerId', farmerController.getFarmerById);
 
 /**
  * @swagger
@@ -199,17 +199,17 @@ router.post('/',
 
 /**
  * @swagger
- * /farmers/{id}:
+ * /farmers/{farmerId}:
  *   put:
  *     summary: Update an existing farmer
  *     tags: [Farmers]
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: farmerId
  *         required: true
  *         schema:
  *           type: string
- *         description: Farmer ID
+ *         description: Farmer UUID
  *     requestBody:
  *       required: true
  *       content:
@@ -237,7 +237,7 @@ router.post('/',
  *       404:
  *         description: Farmer not found
  */
-router.put('/:id',
+router.put('/:farmerId',
   [
     body('name').optional().notEmpty().withMessage('Name cannot be empty').trim(),
     body('email').optional().isEmail().withMessage('Please provide a valid email address').normalizeEmail(),
@@ -251,17 +251,17 @@ router.put('/:id',
 
 /**
  * @swagger
- * /farmers/{id}:
+ * /farmers/{farmerId}:
  *   delete:
  *     summary: Delete a farmer
  *     tags: [Farmers]
  *     parameters:
  *       - in: path
- *         name: id
+ *         name: farmerId
  *         required: true
  *         schema:
  *           type: string
- *         description: Farmer ID
+ *         description: Farmer UUID
  *     responses:
  *       200:
  *         description: Farmer deleted successfully
@@ -281,6 +281,7 @@ router.put('/:id',
  *       404:
  *         description: Farmer not found
  */
-router.delete('/:id', farmerController.deleteFarmer);
+router.delete('/:farmerId', farmerController.deleteFarmer);
 
 module.exports = router;
+
